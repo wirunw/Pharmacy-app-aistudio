@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pharmacy App — AI Studio + Deploy Guide</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f8f8f6;padding:24px;color:#2c2c2a}
+:root{
+--teal:#1D9E75;--teal-l:#E1F5EE;--teal-d:#0F6E56;--teal-m:#5DCAA5;
+--blue:#378ADD;--blue-l:#E6F1FB;--blue-d:#0C447C;
+--purple:#7F77DD;--purple-l:#EEEDFE;--purple-d:#3C3489;
+--amber:#EF9F27;--amber-l:#FAEEDA;--amber-d:#633806;
+--coral:#D85A30;--coral-l:#FAECE7;--coral-d:#4A1B0C;
+--red:#E24B4A;--red-l:#FCEBEB;--red-d:#791F1F;
+--green:#639922;--green-l:#EAF3DE;--green-d:#27500A;
+--bg:#ffffff;--bg2:#f4f3ef;--bg3:#f8f8f6;
+--border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
+--text:#2c2c2a;--text2:#6b6b67;--text3:#9a9a94;
+--radius-md:8px;--radius-lg:12px;
+}
+@media(prefers-color-scheme:dark){
+:root{
+--bg:#1c1c1a;--bg2:#252522;--bg3:#1a1a18;
+--border:rgba(255,255,255,0.12);--border2:rgba(255,255,255,0.22);
+--text:#e8e6de;--text2:#9a9896;--text3:#6a6866;
+}
+body{background:#1a1a18;color:#e8e6de}
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes pop{0%{transform:scale(0.75);opacity:0}80%{transform:scale(1.03)}100%{transform:scale(1);opacity:1}}
+@keyframes codeIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(29,158,117,0)}60%{box-shadow:0 0 0 5px rgba(29,158,117,0.15)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.wrap{max-width:680px;margin:0 auto;padding:8px 0 24px}
+h1{font-size:18px;font-weight:500;margin-bottom:4px}
+.subtitle{font-size:13px;color:var(--text2);margin-bottom:20px}
+
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.pill{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:0.5px solid var(--border);background:var(--bg2);color:var(--text2);transition:all .2s}
+.pill.active{background:var(--teal);color:#fff;border-color:var(--teal);animation:glow 2s ease-in-out infinite}
+.pill.done{background:var(--teal-d);color:#fff;border-color:var(--teal-d)}
+.pill-line{width:20px;height:1.5px;background:var(--border);align-self:center;flex-shrink:0}
+.pill-line.done{background:var(--teal-d)}
+
+.panel{display:none;animation:fadeUp .35s ease forwards}
+.panel.show{display:block}
+
+.card{border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;background:var(--bg);min-height:220px}
+.card-title{font-size:15px;font-weight:500;margin-bottom:3px;color:var(--text)}
+.card-sub{font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;margin:1px 2px}
+.tag-t{background:var(--teal-l);color:var(--teal-d)}
+.tag-b{background:var(--blue-l);color:var(--blue-d)}
+.tag-p{background:var(--purple-l);color:var(--purple-d)}
+.tag-a{background:var(--amber-l);color:var(--amber-d)}
+.tag-r{background:var(--red-l);color:var(--red-d)}
+.tag-g{background:var(--green-l);color:var(--green-d)}
+
+.browser{border:0.5px solid var(--border);border-radius:10px;overflow:hidden;background:var(--bg2)}
+.bbar{display:flex;align-items:center;gap:6px;padding:7px 10px;background:var(--bg3);border-bottom:0.5px solid var(--border)}
+.bd{width:8px;height:8px;border-radius:50%}
+.burl{flex:1;background:var(--bg);border-radius:5px;padding:3px 8px;font-size:11px;color:var(--text2);border:0.5px solid var(--border)}
+.bbody{padding:14px}
+
+.prompt-area{border:1.5px solid var(--teal);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.8;color:var(--text);min-height:68px}
+.cursor{display:inline-block;width:2px;height:13px;background:var(--teal);animation:blink .8s steps(2) infinite;vertical-align:middle;margin-left:1px}
+
+.idea-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px}
+.idea-card{padding:10px 12px;border-radius:8px;border:0.5px solid var(--border);background:var(--bg2);cursor:pointer;transition:border-color .2s}
+.idea-card:hover{border-color:var(--teal)}
+.idea-title{font-size:12px;font-weight:500;margin-bottom:3px}
+.idea-desc{font-size:11px;color:var(--text2);line-height:1.4}
+
+.code-win{background:#1a1a2e;border-radius:8px;padding:11px 13px;font-size:11px;font-family:ui-monospace,monospace;color:#9FE1CB;line-height:1.9;min-height:90px}
+.cl{opacity:0;display:block}
+.cl.on{animation:codeIn .25s ease forwards}
+.kw{color:#AFA9EC}.fn{color:#EF9F27}.str{color:#9FE1CB}.cm{color:#5F5E5A}
+
+.proc-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.chip{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;opacity:0}
+.chip.on{animation:pop .3s ease forwards}
+
+.app-frame{border:0.5px solid var(--border);border-radius:10px;overflow:hidden}
+.app-header{background:var(--teal-d);padding:9px 14px;color:#fff;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px}
+.app-body{padding:12px;background:var(--bg2)}
+.drug-tag{display:inline-block;padding:3px 9px;border-radius:5px;font-size:11px;background:var(--teal-l);color:var(--teal-d);margin:2px;border:0.5px solid var(--teal-m)}
+.alert-box{border-radius:8px;padding:10px 12px;margin-top:8px;font-size:12px;line-height:1.6}
+.alert-warn{background:var(--amber-l);border:0.5px solid var(--amber);color:var(--amber-d)}
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:500;margin-right:4px}
+
+.deploy-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.deploy-card{border-radius:10px;border:0.5px solid var(--border);padding:14px 12px;background:var(--bg);opacity:0;cursor:pointer;transition:border-color .2s}
+.deploy-card.on{animation:pop .35s ease forwards}
+.deploy-card.recommended{border:2px solid var(--teal)}
+.deploy-card:hover{border-color:var(--teal-m)}
+.dc-name{font-size:13px;font-weight:500;margin-bottom:4px;color:var(--text)}
+.dc-sub{font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:8px}
+.dc-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:0.5px solid var(--border);color:var(--text)}
+.dc-row:last-child{border-bottom:none}
+.rec-badge{background:var(--teal-l);color:var(--teal-d);padding:2px 7px;border-radius:4px;font-size:10px;font-weight:500;margin-bottom:6px;display:inline-block}
+
+.deploy-progress{margin-top:14px}
+.dp-row{display:flex;align-items:center;gap:10px;padding:6px 0;opacity:0}
+.dp-row.on{animation:slideIn .3s ease forwards}
+.dp-dot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+.dp-dot.done{background:var(--green-l);border:1.5px solid var(--green);color:var(--green-d)}
+.dp-label{font-size:12px;flex:1;color:var(--text)}
+
+.url-result{margin-top:14px;padding:12px 14px;border-radius:8px;background:var(--teal-l);border:0.5px solid var(--teal-m);font-size:12px;opacity:0;color:var(--teal-d)}
+.url-result.on{animation:fadeUp .4s .5s ease forwards}
+.url-link{color:var(--teal-d);font-weight:500;text-decoration:underline}
+
+.nav{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
+.nbtn{padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:0.5px solid var(--border2);background:var(--bg);color:var(--text);transition:all .2s}
+.nbtn:hover{background:var(--bg2)}
+.nbtn:active{transform:scale(.97)}
+.nbtn.p{background:var(--teal);color:#fff;border-color:var(--teal)}
+.nbtn.p:hover{background:var(--teal-d)}
+.nbtn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
+.nc{font-size:12px;color:var(--text2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Pharmacy App — AI Studio + Deploy Guide</h1>
+<p class="subtitle">สร้างแอปเภสัชด้วย Google AI Studio แล้ว deploy ภายใน ~5 นาที</p>
+
+<div class="pills" id="pills">
+  <div class="pill active" id="pl0" onclick="go(0)">1. ไอเดียแอป</div>
+  <div class="pill-line" id="ln0"></div>
+  <div class="pill" id="pl1" onclick="go(1)">2. เขียน Prompt</div>
+  <div class="pill-line" id="ln1"></div>
+  <div class="pill" id="pl2" onclick="go(2)">3. AI สร้าง</div>
+  <div class="pill-line" id="ln2"></div>
+  <div class="pill" id="pl3" onclick="go(3)">4. แอปพร้อม</div>
+  <div class="pill-line" id="ln3"></div>
+  <div class="pill" id="pl4" onclick="go(4)">5. Deploy</div>
+</div>
+
+<!-- Panel 0 -->
+<div class="panel show" id="p0">
+  <div class="card">
+    <div class="card-title">ไอเดียแอปสำหรับเภสัชกร</div>
+    <div class="card-sub">คลิกเลือกแอปที่อยากสร้าง — แต่ละอันสร้างได้ใน ~5 นาที</div>
+    <div class="idea-grid" id="idea-grid"></div>
+  </div>
+</div>
+
+<!-- Panel 1 -->
+<div class="panel" id="p1">
+  <div class="card">
+    <div class="card-title">เขียน Prompt บอก AI ว่าต้องการแอปแบบไหน</div>
+    <div class="card-sub">ยิ่งละเอียดยิ่งดี ระบุกลุ่มผู้ใช้ ฟีเจอร์หลัก และรูปแบบข้อมูล</div>
+    <div class="browser">
+      <div class="bbar">
+        <div class="bd" style="background:#E24B4A;opacity:.7"></div>
+        <div class="bd" style="background:#EF9F27;opacity:.7"></div>
+        <div class="bd" style="background:#639922;opacity:.7"></div>
+        <div class="burl">aistudio.google.com/apps</div>
+      </div>
+      <div class="bbody">
+        <div class="prompt-area" id="prompt-box"><span style="color:var(--text2);font-style:italic;font-size:12px">กรุณากรอก Prompt ของคุณ...</span></div>
+        <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span class="tag tag-a">เคล็ดลับ</span>
+          <span style="font-size:11px;color:var(--text2)">ระบุ: กลุ่มผู้ใช้ / ฐานข้อมูลที่ต้องการ / ภาษาของ UI</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Panel 2 -->
+<div class="panel" id="p2">
+  <div class="card">
+    <div class="card-title">AI วิเคราะห์และสร้างโค้ด <span class="tag tag-p" style="vertical-align:middle">Gemini 2.5 Pro</span></div>
+    <div class="card-sub">ตรวจจับความต้องการอัตโนมัติ — ฐานข้อมูลยา, ระบบแจ้งเตือน, API</div>
+    <div class="proc-row" id="proc-row">
+      <div class="chip tag-t" id="c0">วิเคราะห์ Prompt</div>
+      <div class="chip tag-p" id="c1">ออกแบบ Database</div>
+      <div class="chip tag-b" id="c2">เลือก React + Next.js</div>
+      <div class="chip tag-a" id="c3">สร้าง Drug Logic</div>
+      <div class="chip tag-g" id="c4">สร้าง UI Components</div>
+    </div>
+    <div class="code-win" id="cw">
+      <span class="cl" id="cc0"><span class="cm">// AI สร้างโค้ดให้อัตโนมัติ...</span></span>
+      <span class="cl" id="cc1"><span class="kw">import</span> { <span class="fn">DrugDatabase</span>, <span class="fn">checkInteraction</span> } <span class="kw">from</span> <span class="str">'./lib/pharma'</span></span>
+      <span class="cl" id="cc2"><span class="kw">const</span> <span class="fn">drugs</span> = [<span class="str">'Warfarin'</span>, <span class="str">'Aspirin'</span>, <span class="str">'Metformin'</span>, ...]</span>
+      <span class="cl" id="cc3"><span class="kw">async function</span> <span class="fn">checkDDI</span>(drug1, drug2) {</span>
+      <span class="cl" id="cc4">&nbsp; <span class="kw">const</span> risk = <span class="kw">await</span> <span class="fn">checkInteraction</span>(drug1, drug2)</span>
+      <span class="cl" id="cc5">&nbsp; <span class="kw">return</span> { severity: risk.level, advice: risk.counsel }</span>
+      <span class="cl" id="cc6">} <span class="cm">// ✓ ครอบคลุมยา 8,400+ รายการ</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- Panel 3 -->
+<div class="panel" id="p3">
+  <div class="card">
+    <div class="card-title">แอปตรวจสอบ Drug Interaction พร้อมใช้</div>
+    <div class="card-sub">Draft แรกออกมาสมบูรณ์ — ทดสอบ prompt เพิ่มเพื่อปรับรายละเอียด</div>
+    <div class="app-frame" id="app-demo">
+      <div class="app-header">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+        Pharma DDI Checker — ตรวจสอบอันตรกิริยาของยา
+      </div>
+      <div class="app-body">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+          <span class="drug-tag">Warfarin 5mg</span>
+          <span class="drug-tag">Aspirin 81mg</span>
+          <span class="drug-tag">+ เพิ่มยา</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px">ผลการตรวจสอบ:</div>
+        <div class="alert-box alert-warn" id="alert-main">
+          <span class="badge" style="background:var(--amber);color:var(--amber-l)">ระวัง</span>
+          <strong>Warfarin + Aspirin</strong> — มีความเสี่ยงเลือดออกเพิ่มขึ้น ควรติดตามค่า INR อย่างใกล้ชิด
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <div style="flex:1;min-width:140px;padding:8px 10px;border-radius:7px;background:var(--bg);border:0.5px solid var(--border);font-size:11px">
+            <div style="font-weight:500;margin-bottom:3px;color:var(--text)">คำแนะนำเภสัชกร</div>
+            <div style="color:var(--text2);line-height:1.5">ตรวจ INR ทุก 1–2 สัปดาห์ ขณะเริ่ม Aspirin และแจ้งแพทย์หากมีรอยฟกช้ำผิดปกติ</div>
+          </div>
+          <div style="flex:1;min-width:140px;padding:8px 10px;border-radius:7px;background:var(--bg);border:0.5px solid var(--border);font-size:11px">
+            <div style="font-weight:500;margin-bottom:3px;color:var(--text)">ระดับความเสี่ยง</div>
+            <div style="display:flex;flex-direction:column;gap:3px;margin-top:4px">
+              <div style="display:flex;align-items:center;gap:6px"><div style="width:8px;height:8px;border-radius:50%;background:var(--red)"></div><span style="color:var(--text)">Major (2 คู่)</span></div>
+              <div style="display:flex;align-items:center;gap:6px"><div style="width:8px;height:8px;border-radius:50%;background:var(--amber)"></div><span style="color:var(--text)">Moderate (1 คู่)</span></div>
+              <div style="display:flex;align-items:center;gap:6px"><div style="width:8px;height:8px;border-radius:50%;background:var(--green)"></div><span style="color:var(--text)">Minor (0 คู่)</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Panel 4 -->
+<div class="panel" id="p4">
+  <div class="card">
+    <div class="card-title">เลือกแพลตฟอร์ม Deploy</div>
+    <div class="card-sub">ทุกตัวรองรับ Next.js / React — เลือกตามลักษณะการใช้งาน</div>
+    <div class="deploy-grid" id="deploy-grid">
+      <div class="deploy-card recommended" id="dc0">
+        <div class="rec-badge">แนะนำสำหรับ Next.js</div>
+        <div class="dc-name">Vercel</div>
+        <div class="dc-sub">สร้างมาเพื่อ Next.js โดยเฉพาะ CI/CD ง่ายมาก push code = deploy อัตโนมัติ</div>
+        <div class="dc-row"><span>ราคา</span><span class="tag tag-g">Free tier ดีมาก</span></div>
+        <div class="dc-row"><span>Domain</span><span style="font-size:11px">.vercel.app / custom</span></div>
+        <div class="dc-row"><span>เหมาะกับ</span><span style="font-size:11px">ทีมเภสัช / Prototype</span></div>
+      </div>
+      <div class="deploy-card" id="dc1">
+        <div class="dc-name">Firebase Hosting</div>
+        <div class="dc-sub">Ecosystem เดียวกับ AI Studio ใช้ Firestore + Auth ที่ AI สร้างไว้ได้เลย</div>
+        <div class="dc-row"><span>ราคา</span><span class="tag tag-b">Free + Pay-as-go</span></div>
+        <div class="dc-row"><span>Domain</span><span style="font-size:11px">.web.app / custom</span></div>
+        <div class="dc-row"><span>เหมาะกับ</span><span style="font-size:11px">App ที่ใช้ Firebase DB</span></div>
+      </div>
+      <div class="deploy-card" id="dc2">
+        <div class="dc-name">Netlify</div>
+        <div class="dc-sub">Deploy ง่าย ลาก-วาง folder ก็ได้ รองรับ serverless functions หากต้องการ API</div>
+        <div class="dc-row"><span>ราคา</span><span class="tag tag-a">Free tier</span></div>
+        <div class="dc-row"><span>Domain</span><span style="font-size:11px">.netlify.app / custom</span></div>
+        <div class="dc-row"><span>เหมาะกับ</span><span style="font-size:11px">React Static / SPA</span></div>
+      </div>
+    </div>
+    <div style="margin-top:14px;border-top:0.5px solid var(--border);padding-top:14px">
+      <div style="font-size:13px;font-weight:500;margin-bottom:10px;color:var(--text)">ขั้นตอน Deploy บน Vercel (แนะนำ)</div>
+      <div class="deploy-progress" id="dep-prog"></div>
+      <div class="url-result" id="url-result">
+        <div style="font-weight:500;margin-bottom:4px">Deploy สำเร็จ!</div>
+        <div>URL: <span class="url-link">pharma-ddi.vercel.app</span> — พร้อมแชร์ให้ทีมหรือผู้ป่วย</div>
+        <div style="margin-top:6px;font-size:11px;opacity:.8">เชื่อมต่อ custom domain เช่น ddi.pharmconnection.net ได้ในหน้า Settings</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nbtn" id="btn-b" onclick="nav(-1)" disabled>← ย้อนกลับ</button>
+  <span class="nc" id="nc">1 / 5 — ไอเดียแอปเภสัช</span>
+  <button class="nbtn p" id="btn-n" onclick="nav(1)">ถัดไป →</button>
+</div>
+</div>
+
+<script>
+var cur=0,n=5;
+var labs=["ไอเดียแอปเภสัช","เขียน Prompt","AI สร้างโค้ด","แอปพร้อมใช้","Deploy"];
+var ts=[];
+function clr(){ts.forEach(clearTimeout);ts=[]}
+
+var ideas=[
+  {title:"DDI Checker",desc:"ตรวจสอบอันตรกิริยาของยาหลายรายการพร้อมกัน",tag:"tag-r",prompt:'Create a drug-drug interaction checker app for pharmacists in Thailand. Allow input of multiple drug names (Thai/English), display severity levels (Major/Moderate/Minor), counseling points, and monitoring parameters. UI in Thai language. Use a database of common Thai formulary drugs.'},
+  {title:"Dose Calculator",desc:"คำนวณขนาดยาตามน้ำหนัก/อายุ/ค่า CrCl",tag:"tag-b",prompt:'Build a pharmacokinetic dose calculator for pharmacists. Support weight-based, renal-adjusted (CrCl Cockcroft-Gault), and pediatric dosing. Include drugs: Vancomycin, Gentamicin, Heparin. Show calculation steps. Thai UI.'},
+  {title:"SOAP Note",desc:"AI ช่วยสร้าง SOAP Note สำหรับเภสัชกร",tag:"tag-t",prompt:'Create a pharmacy SOAP note generator. Allow input of patient info, chief complaint, current medications, labs. Use AI to suggest assessment and pharmacist plan. Output formatted SOAP note in Thai. Store history per patient.'},
+  {title:"Drug Info",desc:"ค้นหาข้อมูลยา กลไก ข้อบ่งใช้ ผลข้างเคียง",tag:"tag-p",prompt:'Build a Thai pharmacy drug information app. Search by generic/brand name. Display mechanism, indications, contraindications, side effects, pregnancy category, drug interactions. Support offline mode. UI in Thai.'},
+  {title:"Inventory",desc:"บริหารคลังยา แจ้งเตือนยาใกล้หมด/หมดอายุ",tag:"tag-a",prompt:'Create a community pharmacy inventory management app. Track stock levels, expiry dates, reorder points. Send alerts for low stock and expiring drugs. Show usage trends. Dashboard with summary cards. Thai UI with Firebase backend.'},
+  {title:"Counseling",desc:"ระบบให้คำแนะนำการใช้ยาพร้อม QR Code",tag:"tag-g",prompt:'Build a patient medication counseling app for pharmacists. Input drug name, generate counseling sheet with usage instructions, side effects to watch, storage. Auto-generate QR code to share with patient. Print-ready format in Thai.'}
+];
+
+var selIdea=0;
+
+function buildIdeas(){
+  var g=document.getElementById('idea-grid');
+  g.innerHTML='';
+  ideas.forEach(function(d,i){
+    var el=document.createElement('div');
+    el.className='idea-card';
+    el.style.animation='fadeUp .3s ease both';
+    el.style.animationDelay=(i*0.08)+'s';
+    el.innerHTML='<div class="idea-title"><span class="tag '+d.tag+'" style="margin:0 4px 0 0">'+d.title+'</span></div><div class="idea-desc">'+d.desc+'</div>';
+    el.onclick=function(){
+      selIdea=i;
+      document.querySelectorAll('.idea-card').forEach(function(c){c.style.borderColor='';c.style.background=''});
+      el.style.borderColor='var(--teal)';
+      el.style.background='var(--teal-l)';
+    };
+    if(i===0){el.style.borderColor='var(--teal)';el.style.background='var(--teal-l)'}
+    g.appendChild(el);
+  });
+}
+
+var promptFull='';
+var promptIdx=0;
+function startPrompt(){
+  promptFull=ideas[selIdea].prompt;
+  var el=document.getElementById('prompt-box');
+  el.innerHTML='<span class="cursor"></span>';
+  promptIdx=0;
+  function tick(){
+    if(promptIdx<promptFull.length){
+      promptIdx++;
+      el.innerHTML=promptFull.slice(0,promptIdx)+'<span class="cursor"></span>';
+      var delay=promptIdx<30?35:promptIdx<100?22:12;
+      ts.push(setTimeout(tick,delay));
+    }
+  }
+  ts.push(setTimeout(tick,300));
+}
+
+function startCode(){
+  [0,1,2,3,4,5,6].forEach(function(i){
+    var e=document.getElementById('cc'+i);
+    if(e){e.classList.remove('on');ts.push(setTimeout(function(){e.classList.add('on')},200+i*200))}
+  });
+  [0,1,2,3,4].forEach(function(i){
+    var e=document.getElementById('c'+i);
+    if(e){e.classList.remove('on');ts.push(setTimeout(function(){e.classList.add('on')},150+i*280))}
+  });
+}
+
+function startApp(){
+  var el=document.getElementById('app-demo');
+  if(el){el.style.animation='none';void el.offsetWidth;el.style.animation='pop .45s ease forwards'}
+}
+
+var depSteps=[
+  {label:'git push origin main'},
+  {label:'Vercel ตรวจพบ commit ใหม่'},
+  {label:'npm install + build'},
+  {label:'Running automated tests'},
+  {label:'Deploying to edge network'}
+];
+
+function startDeploy(){
+  [0,1,2].forEach(function(i){
+    var e=document.getElementById('dc'+i);
+    if(e){e.classList.remove('on');ts.push(setTimeout(function(){e.classList.add('on')},150+i*200))}
+  });
+  var prog=document.getElementById('dep-prog');
+  prog.innerHTML='';
+  depSteps.forEach(function(s,i){
+    var row=document.createElement('div');
+    row.className='dp-row';
+    row.innerHTML='<div class="dp-dot done">&#10003;</div><div class="dp-label">'+s.label+'</div><span class="tag tag-g" style="font-size:10px">done</span>';
+    prog.appendChild(row);
+    ts.push(setTimeout(function(){row.classList.add('on')},300+i*300));
+  });
+  ts.push(setTimeout(function(){
+    var u=document.getElementById('url-result');
+    if(u)u.classList.add('on');
+  },2400));
+}
+
+function go(idx){
+  clr();
+  cur=idx;
+  for(var i=0;i<n;i++){
+    document.getElementById('p'+i).classList.toggle('show',i===idx);
+    var pl=document.getElementById('pl'+i);
+    pl.classList.remove('active','done');
+    if(i<idx)pl.classList.add('done');
+    else if(i===idx)pl.classList.add('active');
+    if(i<n-1){var ln=document.getElementById('ln'+i);if(ln)ln.classList.toggle('done',i<idx)}
+  }
+  document.getElementById('btn-b').disabled=idx===0;
+  document.getElementById('btn-n').disabled=idx===n-1;
+  document.getElementById('nc').textContent=(idx+1)+' / '+n+' — '+labs[idx];
+  if(idx===1)startPrompt();
+  if(idx===2)startCode();
+  if(idx===3)startApp();
+  if(idx===4)startDeploy();
+}
+
+function nav(d){go(Math.max(0,Math.min(n-1,cur+d)))}
+
+buildIdeas();
+go(0);
+</script>
+</body>
+</html>
